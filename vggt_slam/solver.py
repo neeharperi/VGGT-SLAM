@@ -62,7 +62,7 @@ class Viewer:
         num_rand_colors = 250
         self.random_colors = np.random.randint(0, 256, size=(num_rand_colors, 3), dtype=np.uint8)
 
-    def visualize_frames(self, extrinsics: np.ndarray, images_: np.ndarray, submap_id: int) -> None:
+    def visualize_frames(self, extrinsics: np.ndarray, images_: np.ndarray, submap_id: int, image_scale: float=0.5) -> None:
         """
         Add camera frames and frustums to the scene for a specific submap.
         extrinsics: (S, 3, 4)
@@ -99,16 +99,24 @@ class Viewer:
             # Convert image and add frustum
             img = images_[img_id]
             img = (img.transpose(1, 2, 0) * 255).astype(np.uint8)
+
             h, w = img.shape[:2]
             fy = 1.1 * h
             fov = 2 * np.arctan2(h / 2, fy)
+
+            # Downsample for visualization with `image_scale`
+            img_resized = cv2.resize(
+                img,
+                (int(img.shape[1] * image_scale), int(img.shape[0] * image_scale)),
+                interpolation=cv2.INTER_AREA
+            )
 
             frustum = self.server.scene.add_camera_frustum(
                 frustum_name,
                 fov=fov,
                 aspect=w / h,
                 scale=0.05,
-                image=img,
+                image=img_resized,
                 line_width=3.0,
                 color=self.random_colors[submap_id]
             )
