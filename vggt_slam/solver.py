@@ -141,7 +141,9 @@ class Solver:
         use_point_map: bool = False,
         visualize_global_map: bool = False,
         use_sim3: bool = False,
-        gradio_mode: bool = False):
+        gradio_mode: bool = False,
+        vis_stride: int = 1,         # represents how much the visualized point clouds are sparsified
+        vis_point_size: float = 0.001):
         
         self.init_conf_threshold = init_conf_threshold
         self.use_point_map = use_point_map
@@ -171,6 +173,9 @@ class Solver:
         self.prior_pcd = None
         self.prior_conf = None
 
+        self.vis_stride = vis_stride
+        self.vis_point_size = vis_point_size
+
         print("Starting viser server...")
 
     def set_point_cloud(self, points_in_world_frame, points_colors, name, point_size):
@@ -187,10 +192,12 @@ class Solver:
 
     def set_submap_point_cloud(self, submap):
         # Add the point cloud to the visualization.
-        points_in_world_frame = submap.get_points_in_world_frame()
-        points_colors = submap.get_points_colors()
+        # NOTE(hlim): `stride` is used only to reduce the visualization cost in viser,
+        # and does not affect the underlying point cloud data.
+        points_in_world_frame = submap.get_points_in_world_frame(stride = self.vis_stride)
+        points_colors = submap.get_points_colors(stride = self.vis_stride)
         name = str(submap.get_id())
-        self.set_point_cloud(points_in_world_frame, points_colors, name, 0.001)
+        self.set_point_cloud(points_in_world_frame, points_colors, name, self.vis_point_size)
 
     def set_submap_poses(self, submap):
         # Add the camera poses to the visualization.
