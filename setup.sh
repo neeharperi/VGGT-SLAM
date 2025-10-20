@@ -1,9 +1,16 @@
 #!/bin/bash
 set -e  # Exit immediately if a command exits with a non-zero status
 
+# 0. Clean Prior Installations
+echo "Cleaning prior installations..."
+rm -rf salad
+rm -rf vggt
+rm -rf sam2
+
 # 1. Install Python dependencies
 echo "Installing base requirements..."
-pip3 install -r requirements.txt
+pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+pip install -r requirements.txt
 
 # 2. Clone and install Salad
 echo "Cloning and installing Salad..."
@@ -27,5 +34,20 @@ pip install -e ./vggt
 # 5. Install current repo in editable mode
 echo "Installing current repo..."
 pip install -e .
+
+# 6. Clone and install external dependencies
+echo "Cloning and installing SAM2..."
+git clone https://github.com/facebookresearch/sam2.git
+pip install -e ./sam2
+
+cd ./sam2/checkpoints && \
+./download_ckpts.sh && \
+cd ../..
+
+pip install git+https://github.com/microsoft/MoGe.git
+
+#echo "Cloning and installing MapAnything..."
+#git clone https://github.com/facebookresearch/map-anything.git
+#pip install -e ./map-anything
 
 echo "Installation Complete"
